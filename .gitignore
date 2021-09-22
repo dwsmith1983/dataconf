@@ -26,3 +26,7 @@ MANIFEST
 .venv/
 .vscode/
 .idea
+
+# can be removed but adding poetry.lock and git 2 (not sure where that came from)
+poetry.lock
+.git 2

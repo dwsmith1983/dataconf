@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from dataclasses import fields
 from dataclasses import is_dataclass
+import deprecation
 from typing import get_args
 from typing import get_origin
 from typing import Union
@@ -16,6 +17,7 @@ from pyhocon.config_tree import ConfigList
 from pyhocon.config_tree import ConfigTree
 from pyhocon.exceptions import ConfigMissingException
 import pyparsing
+from dataconf.version import __version__
 
 NoneType = type(None)
 
@@ -157,6 +159,9 @@ def __generate(value: object, path):
     return value
 
 
+@deprecation.deprecated(deprecated_in="0.1.7", removed_in="0.2.0",
+                        current_version=__version__,
+                        details="Use dataconf.from_file")
 def load(file: str, clazz):
     try:
         conf = ConfigFactory.parse_file(file)
@@ -167,6 +172,9 @@ def load(file: str, clazz):
         )
 
 
+@deprecation.deprecated(deprecated_in="0.1.7", removed_in="0.2.0",
+                        current_version=__version__,
+                        details="Use dataconf.from_string")
 def loads(string: str, clazz):
     try:
         conf = ConfigFactory.parse_string(string)
