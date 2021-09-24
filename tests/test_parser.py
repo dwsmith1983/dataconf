@@ -7,8 +7,8 @@ from typing import Optional
 from typing import Text
 from typing import Union
 
-from dataconf import load
-from dataconf import loads
+from dataconf import from_file
+from dataconf import from_string
 import dataconf.exceptions
 from dataconf.exceptions import MissingTypeException
 from dataconf.exceptions import UnexpectedKeysException
@@ -33,7 +33,7 @@ class TestParser:
         conf = """
         a = test
         """
-        assert loads(conf, A) == A(a="test")
+        assert from_string(conf, A) == A(a="test")
 
     def test_relativedelta(self) -> None:
         @dataclass
@@ -43,7 +43,7 @@ class TestParser:
         conf = """
         a = 2d
         """
-        assert loads(conf, A) == A(a=relativedelta(days=2))
+        assert from_string(conf, A) == A(a=relativedelta(days=2))
 
     def test_list(self) -> None:
         @dataclass
@@ -55,7 +55,7 @@ class TestParser:
             test
         ]
         """
-        assert loads(conf, A) == A(a=["test"])
+        assert from_string(conf, A) == A(a=["test"])
 
     def test_boolean(self) -> None:
         @dataclass
@@ -65,7 +65,7 @@ class TestParser:
         conf = """
         a = false
         """
-        assert loads(conf, A) == A(a=False)
+        assert from_string(conf, A) == A(a=False)
 
     def test_dict(self) -> None:
         @dataclass
@@ -77,7 +77,7 @@ class TestParser:
             b = test
         }
         """
-        assert loads(conf, A) == A(a={"b": "test"})
+        assert from_string(conf, A) == A(a={"b": "test"})
 
     def test_nested(self) -> None:
         @dataclass
@@ -93,7 +93,7 @@ class TestParser:
             a = test
         }
         """
-        assert loads(conf, A) == A(b=B(a="test"))
+        assert from_string(conf, A) == A(b=B(a="test"))
 
     def test_union(self) -> None:
         @dataclass
@@ -109,12 +109,12 @@ class TestParser:
             a = test
         }
         """
-        assert loads(conf, A) == A(b=B(a="test"))
+        assert from_string(conf, A) == A(b=B(a="test"))
 
         conf = """
         b = test
         """
-        assert loads(conf, A) == A(b="test")
+        assert from_string(conf, A) == A(b="test")
 
     def test_optional(self) -> None:
         @dataclass
@@ -122,12 +122,12 @@ class TestParser:
             b: Optional[Text] = None
 
         conf = ""
-        assert loads(conf, A) == A(b=None)
+        assert from_string(conf, A) == A(b=None)
 
         conf = """
         b = test
         """
-        assert loads(conf, A) == A(b="test")
+        assert from_string(conf, A) == A(b="test")
 
     def test_optional_with_default(self) -> None:
         @dataclass
@@ -135,12 +135,12 @@ class TestParser:
             b: Optional[Text]
 
         conf = ""
-        assert loads(conf, A) == A(b=None)
+        assert from_string(conf, A) == A(b=None)
 
         conf = """
         b = test
         """
-        assert loads(conf, A) == A(b="test")
+        assert from_string(conf, A) == A(b="test")
 
     def test_empty_list(self) -> None:
         @dataclass
@@ -148,7 +148,7 @@ class TestParser:
             b: List[Text] = field(default_factory=list)
 
         conf = ""
-        assert loads(conf, A) == A(b=[])
+        assert from_string(conf, A) == A(b=[])
 
     def test_json(self) -> None:
         @dataclass
@@ -160,7 +160,7 @@ class TestParser:
             "b": "c"
         }
         """
-        assert loads(conf, A) == A(b="c")
+        assert from_string(conf, A) == A(b="c")
 
     def test_yaml(self) -> None:
         @dataclass
@@ -170,29 +170,29 @@ class TestParser:
         conf = """
         b: c
         """
-        assert loads(conf, A) == A(b="c")
+        assert from_string(conf, A) == A(b="c")
 
     def test_default_value(self) -> None:
         @dataclass
         class A:
             b: Text = "c"
 
-        assert loads("", A) == A(b="c")
+        assert from_string("", A) == A(b="c")
 
     def test_root_dict(self) -> None:
 
         conf = """
         b: c
         """
-        assert loads(conf, Dict[Text, Text]) == dict(b="c")
+        assert from_string(conf, Dict[Text, Text]) == dict(b="c")
 
     def test_missing_type(self) -> None:
 
         with pytest.raises(MissingTypeException):
-            loads("", Dict)
+            from_string("", Dict)
 
         with pytest.raises(MissingTypeException):
-            loads("", List)
+            from_string("", List)
 
     def test_misformat(self) -> None:
 
@@ -210,7 +210,7 @@ class TestParser:
             f: Dict[Text, Text] = field(default_factory=dict)
 
         with pytest.raises(UnexpectedKeysException):
-            loads(conf, Dict[Text, Clazz])
+            from_string(conf, Dict[Text, Clazz])
 
     def test_complex_hocon(self) -> None:
         @dataclass
@@ -236,7 +236,7 @@ class TestParser:
                 ]
             )
 
-        conf = load(os.path.join(PARENT_DIR, "confs", "complex.hocon"), Base)
+        conf = from_file(os.path.join(PARENT_DIR, "confs", "complex.hocon"), Base)
 
         assert conf == Base(
             data_root="/some/path/here",
@@ -262,7 +262,7 @@ class TestParser:
         }
         """
 
-        conf = loads(str_conf, Base)
+        conf = from_string(str_conf, Base)
         assert conf == Base(
             location="Europe",
             input_source=StringImpl(name="Thailand", age="12"),
@@ -286,7 +286,7 @@ class TestParser:
         }
         """
 
-        conf = loads(str_conf, Base)
+        conf = from_string(str_conf, Base)
         assert conf == Base(
             location="Europe",
             input_source=IntImpl(area_code=94, phone_num="1234567"),
@@ -312,7 +312,7 @@ class TestParser:
                 """
 
         with pytest.raises(Exception) as e:
-            loads(str_conf, Base)
+            from_string(str_conf, Base)
 
         assert e.type == dataconf.exceptions.UnexpectedKeysException
         assert (

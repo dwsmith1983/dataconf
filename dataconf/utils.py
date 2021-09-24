@@ -175,6 +175,16 @@ def load(file: str, clazz):
         )
 
 
+def from_file(file: str, clazz):
+    try:
+        conf = ConfigFactory.parse_file(file)
+        return __parse(conf, clazz, "")
+    except pyparsing.ParseSyntaxException as e:
+        raise MalformedConfigException(
+            f'parsing failure line {e.lineno} character {e.col}, got "{e.line}"'
+        )
+
+
 @deprecation.deprecated(
     deprecated_in="0.1.7",
     removed_in="0.2.0",
@@ -182,6 +192,16 @@ def load(file: str, clazz):
     details="Use dataconf.from_string",
 )
 def loads(string: str, clazz):
+    try:
+        conf = ConfigFactory.parse_string(string)
+        return __parse(conf, clazz, "")
+    except pyparsing.ParseSyntaxException as e:
+        raise MalformedConfigException(
+            f'parsing failure line {e.lineno} character {e.col}, got "{e.line}"'
+        )
+
+
+def from_string(string: str, clazz):
     try:
         conf = ConfigFactory.parse_string(string)
         return __parse(conf, clazz, "")
